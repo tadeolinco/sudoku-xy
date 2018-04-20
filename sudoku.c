@@ -1,238 +1,185 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#define EMPTY -1
 
-typedef struct stack
+void write_solution(FILE *fpw, int solution, int **puzzle, int puzzleSize)
 {
-  int x;
-  struct stack *next;
-} stack_node;
-
-typedef struct node_tag
-{
-  int row, col;
-  struct node_tag *next;
-  struct node_tag *prev;
-  stack_node *stack;
-} stack_list;
-
-void print_puzzle(int **puzzle, int size)
-{
-  int i, j;
-  for (i = 0; i < size * size; ++i)
+  fprintf(fpw, "SOLUTION #%d\n", solution);
+  for (int i = 0; i < puzzleSize; ++i)
   {
-    for (j = 0; j < size * size; ++j)
+    for (int j = 0; j < puzzleSize; ++j)
     {
-      printf("%d ", puzzle[i][j]);
+      fprintf(fpw, "%d ", puzzle[i][j]);
     }
-    printf("\n");
-  }
-}
-
-void print_stack(stack_node *ptr)
-{
-  if (ptr != NULL)
-  {
-    stack_node *temp = ptr;
-    while (temp != NULL)
-    {
-      printf("%d ", temp->x);
-      temp = temp->next;
-    }
-    printf("\n");
-  }
-  else
-  {
-    printf("\tStack empty!\n");
+    fprintf(fpw, "\n");
   }
 }
 
 void validate(int **puzzle, int row, int col, int size, int **impossible)
 {
-  int i, j;
-
-  for (i = 0; i < size * size; ++i)
+  for (int i = 0; i < size * size; ++i)
   {
-    // Array of flags: 0 is flag for possible; 1 is flag for seen in puzzle
-    // Flags numbers present in its row
     if (puzzle[row][i] != 0)
-    {
       (*impossible)[puzzle[row][i] - 1] = 1;
-    }
-    // Flags numbers present in its column
     if (puzzle[i][col] != 0)
-    {
       (*impossible)[puzzle[i][col] - 1] = 1;
-    }
   }
 
-  // Flags numbers present within it's subsquare
-  for (i = size * (row / size); i < size * (row / size) + size; ++i)
-  {
-    for (j = size * (col / size); j < size * (col / size) + size; ++j)
-    {
+  for (int i = size * (row / size); i < size * (row / size) + size; ++i)
+    for (int j = size * (col / size); j < size * (col / size) + size; ++j)
       if (puzzle[i][j] != 0)
-      {
         (*impossible)[puzzle[i][j] - 1] = 1;
-      }
-    }
-  }
 }
 
-void pop(stack_list *ptr)
+void print_puzzle(int **puzzle, int size)
 {
-  stack_node *temp = ptr->stack;
-  ptr->stack = ptr->stack->next;
-  free(temp);
-}
-
-void write_solution(FILE *file_write, int solution, int **puzzle, int size)
-{
-  int i, j;
-  fprintf(file_write, "%d\n", solution);
-  for (i = 0; i < size * size; ++i)
+  for (int i = 0; i < size; ++i)
   {
-    for (j = 0; j < size * size; ++j)
-    {
-      fprintf(file_write, "%d ", puzzle[i][j]);
-    }
-    fprintf(file_write, "\n");
+    for (int j = 0; j < size; ++j)
+      printf("%d ", puzzle[i][j]);
+
+    printf("\n");
   }
+}
+
+void print_stack(int *stack, int tos)
+{
+  for (int i = tos; i >= 0; --i)
+    printf("%d ", stack[i]);
+  printf("\n");
 }
 
 int main()
 {
-  int i, j, k;
-  int num_of_puzzles = 0;
-  int size = 0;
-  stack_list *node, *temp = NULL;
-  stack_list *root = NULL;
-  stack_node *ptr;
+  FILE *fpr = NULL;
+  int tests = 0;
 
-  FILE *file_read = NULL;
-  FILE *file_write = NULL;
-
-  file_read = fopen("input.txt", "r");
-  file_write = fopen("output.txt", "w");
-  fscanf(file_read, "%d", &num_of_puzzles);
-
-  for (k = 0; k < num_of_puzzles; ++k)
+  fpr = fopen("input.txt", "r");
+  fscanf(fpr, "%d", &tests);
+  for (int test = 0; test < tests; ++test)
   {
-    fscanf(file_read, "%d", &size);
+    // https://stackoverflow.com/questions/4232842/how-to-dynamically-change-filename-while-writing-in-a-loop/4233114
+    char buffer[32];
+    snprintf(buffer, sizeof(char) * 32, "solutions/output-%i.txt", test + 1);
+    FILE *fpw = fopen(buffer, "w");
 
-    int **puzzle = (int **)malloc(sizeof(int *) * size * size);
-    int *impossible = (int *)malloc(sizeof(int) * size * size);
+    int subSize = 0;
+    fscanf(fpr, "%d", &subSize);
+    int puzzleSize = subSize * subSize;
 
-    // create 2D puzzle
-    for (i = 0; i < size * size; ++i)
+    int **puzzle = (int **)malloc(sizeof(int *) * puzzleSize);
+
+    // array of row indices
+    int *rows = (int *)malloc(sizeof(int) * puzzleSize * puzzleSize);
+    // array of column indices
+    int *cols = (int *)malloc(sizeof(int) * puzzleSize * puzzleSize);
+    // array of top of stack indices
+    int *tos = (int *)malloc(sizeof(int) * puzzleSize * puzzleSize);
+    // array of stacks
+    int **stacks = (int **)malloc(sizeof(int *) * puzzleSize * puzzleSize);
+
+    int blanks = 0; // number of blank cells in the puzzle
+
+    for (int row = 0; row < puzzleSize; ++row)
     {
-      puzzle[i] = (int *)malloc(sizeof(int) * size * size);
-      for (j = 0; j < size * size; ++j)
+      puzzle[row] = (int *)malloc(sizeof(int) * puzzleSize);
+      for (int col = 0; col < puzzleSize; ++col)
       {
-        fscanf(file_read, "%d", &puzzle[i][j]);
-
-        // if cell is 0, initialize stack for it
-        if (puzzle[i][j] == 0)
+        fscanf(fpr, "%d", &puzzle[row][col]);
+        // if cell is blank, create a new stack for it
+        if (puzzle[row][col] == 0)
         {
-          node = (stack_list *)malloc(sizeof(stack_list));
-          node->row = i;
-          node->col = j;
-          node->next = NULL;
-          node->prev = NULL;
-          node->stack = NULL;
-
-          // attach node to last node in list of stack nodes
-          if (root == NULL)
-            root = node;
-          else
-          {
-            temp = root;
-            while (temp->next != NULL)
-            {
-              temp = temp->next;
-            }
-            temp->next = node;
-            node->prev = temp;
-          }
+          rows[blanks] = row;
+          cols[blanks] = col;
+          tos[blanks] = EMPTY;
+          stacks[blanks] = (int *)malloc(sizeof(int) * puzzleSize);
+          blanks++;
         }
       }
     }
 
-    temp = root;
-    while (temp != NULL)
+    int solutions = 0;
+    int *impossible = (int *)malloc(sizeof(int) * puzzleSize);
+    int index = 0; // for current cell
+    while (index < blanks)
     {
-      for (i = 0; i < size * size; ++i)
+      // reset impossibe solutions
+      for (int i = 0; i < puzzleSize; ++i)
         impossible[i] = 0;
-      validate(puzzle, temp->row, temp->col, size, &impossible);
 
-      // populates stack
-      for (i = size * size - 1; i >= 0; --i)
+      // populates the impossible values, marks 0 for possible solutions
+      validate(puzzle, rows[index], cols[index], subSize, &impossible);
+
+      // populate stack for possible solutions
+      for (int i = puzzleSize - 1; i >= 0; --i)
       {
         if (impossible[i] == 0)
-        {
-          ptr = (stack_node *)malloc(sizeof(stack_node));
-          ptr->x = i + 1;
-          ptr->next = temp->stack;
-          temp->stack = ptr;
-        }
+          stacks[index][++tos[index]] = i + 1;
       }
 
-      // if the current node didnt make a stack
-      // backtrack until you find a stack with more than 2 nodes
-      while (temp->stack == NULL)
+      // automatically cull stacks that don't get populated
+      // then backtracks to last stack for other valid solutions
+      while (tos[index] == EMPTY && index > EMPTY)
       {
-        temp = temp->prev;
-        puzzle[temp->row][temp->col] = 0; // reset value of puzzle
-        pop(temp);
+        index--;      // backtrack
+        tos[index]--; // pop
+        puzzle[rows[index]][cols[index]] = 0;
       }
+      // no more solutions, we already backtracked to start
+      if (index == EMPTY)
+        break;
 
-      int solutions = 0;
-      // this means it reached the end of the puzzle
-      // and found a solution
-      if (temp->next == NULL)
+      // insert current solution to the puzzle for validation for the next stacks
+      puzzle[rows[index]][cols[index]] = stacks[index][tos[index]];
+
+      // if it reached the last blank cell, that means we found a solution
+      if (index == blanks - 1)
       {
-        printf("SOLUTION FOUND\n");
         solutions++;
-        puzzle[temp->row][temp->col] = temp->stack->x;
-        printf("Row: %d, Col: %d\n", temp->row, temp->col);
-        print_stack(temp->stack);
-        print_puzzle(puzzle, size);
-        write_solution(file_write, solutions, puzzle, size);
-        // remove the the stack of the last node
-        puzzle[temp->row][temp->col] = 0;
-        pop(temp);
+        // write solution to current fpw
+        write_solution(fpw, solutions, puzzle, puzzleSize);
 
-        // keep removing stacks until it finds a stack that has 2 or more nodes
-        do
+        // backtrack to next possible solution
+        while (index != EMPTY)
         {
-          temp = temp->prev;
-          // there's a possibility that it will reach the beginning
-          if (temp == NULL)
+          puzzle[rows[index]][cols[index]] = 0;
+          tos[index]--; // pop
+          // we want to stop backtracking if the current stack
+          // has at least one element, even after popping
+          if (tos[index] != EMPTY)
             break;
-          puzzle[temp->row][temp->col] = 0;
-          pop(temp);
-        } while (temp->stack == NULL);
-        // has reached the beginning, the puzzle has been solved
-        if (temp == NULL)
+          index--; // backtrack
+        }
+
+        // no more solutions, we already backtracked to start
+        if (index == EMPTY)
           break;
       }
-      // set the current cell of to the TOS for validation
-      puzzle[temp->row][temp->col] = temp->stack->x;
 
-      printf("Row: %d, Col: %d\n", temp->row, temp->col);
-      print_stack(temp->stack);
-      print_puzzle(puzzle, size);
-      // get next node to validate
-      temp = temp->next;
+      // update again, just in case we backtracked
+      puzzle[rows[index]][cols[index]] = stacks[index][tos[index]];
+      index++;
     }
-    for (i = 0; i < size * size; ++i)
-    {
-      free(puzzle[i]);
-    }
+
+    if (solutions == 0)
+      fprintf(fpw, "NO SOLUTIONS");
+
+    printf("Test[%d] has %d solution/s.\n", test + 1, solutions);
+
+    // free everything that was memory allocated
+    for (int row = 0; row < puzzleSize; ++row)
+      free(puzzle[row]);
     free(puzzle);
+    free(rows);
+    free(cols);
+    for (int i = 0; i < blanks; ++i)
+      free(stacks[i]);
+    free(stacks);
     free(impossible);
-  }
 
-  fclose(file_read);
-  fclose(file_write);
+    fclose(fpw);
+  }
+  fclose(fpr);
+  return 0;
 }
