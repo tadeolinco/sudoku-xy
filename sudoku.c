@@ -122,7 +122,9 @@ int main()
       // then backtracks to last stack for other valid solutions
       while (tos[index] == EMPTY && index > EMPTY)
       {
-        index--;      // backtrack
+        index--; // backtrack
+        if (index == EMPTY)
+          break;
         tos[index]--; // pop
         puzzle[rows[index]][cols[index]] = 0;
       }
@@ -173,6 +175,7 @@ int main()
     free(puzzle);
     free(rows);
     free(cols);
+    free(tos);
     for (int i = 0; i < blanks; ++i)
       free(stacks[i]);
     free(stacks);
