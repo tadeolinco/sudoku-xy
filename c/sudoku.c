@@ -104,7 +104,7 @@ int main()
     int index = 0; // for current cell
     while (index < blanks)
     {
-      // reset impossibe solutions
+      // reset impossible solutions
       for (int i = 0; i < puzzleSize; ++i)
         impossible[i] = 0;
 
@@ -118,7 +118,7 @@ int main()
           stacks[index][++tos[index]] = i + 1;
       }
 
-      // automatically cull stacks that don't get populated
+      // automatically culls stacks that don't get populated
       // then backtracks to last stack for other valid solutions
       while (tos[index] == EMPTY && index > EMPTY)
       {
