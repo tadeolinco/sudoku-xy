@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import Board from './containers/Board';
+// import Board from './containers/Board';
 import SolutionTable from './containers/SolutionTable';
-import Cell from './components/Cell';
-import { Button, Input, Container } from 'semantic-ui-react';
+// import Cell from './components/Cell';
+import { Button, Input, Container, Grid } from 'semantic-ui-react';
 
 class App extends Component {
   constructor(props) {
@@ -10,8 +10,14 @@ class App extends Component {
     this.boardRef = React.createRef();
     this.state = {
       puzzle: null,
-      size: 0
+      size: 0,
+      gameOver: false
     }
+  }
+
+  toggleGameOver = () => {
+    const currentState = this.state.gameOver
+    this.setState({ gameOver: !currentState })
   }
 
   readInputFile = e => {
@@ -26,28 +32,35 @@ class App extends Component {
     }
   }
 
-  toggleBoard() {
-
-  }
-
   render() {
     return (
       <Container textAlign="center">
         <h1>sudoku xy</h1>
         <Input type="file" onChange={this.readInputFile}></Input>
-        <Board ref={this.boardRef}>
-          {this.state.puzzle && this.state.puzzle.map((row, i) => {
-            return (
-              <div key={i} className="boardRow">
-                {this.state.puzzle[i].map((col, j) => {
-                  return <Cell key={j} value={this.state.puzzle[i][j]} />
-                })}
-              </div>
-            )
-          })}
-          <br />
-        </Board>
-        <Button onClick={this.toggleBoard.bind(this)}> GIVE UP </Button>
+
+        <div id="board" style={{ width: 50*this.state.size, height: 50*this.state.size, margin: 0 }}>
+          <Grid columns={this.state.size}>
+            { this.state.puzzle && this.state.puzzle.map((row, i) => {
+              return (
+                <Grid.Row key={i} className="row" row_val={row}>
+                  {
+                    row.map((cell, j) => {
+                      const disabled = cell === 0 ? false : true
+                      return(
+                        <Grid.Column key={j} textAlign='center'>
+                           { disabled && <input disabled value={cell} style={{ width: 20 }}/>}
+                           { !disabled && <input style={{ width: 20 }} /> }
+                        </Grid.Column>
+                      )
+                    })
+                  }
+                </Grid.Row>
+              )
+            })}
+          </Grid>
+        </div>
+
+        <Button onClick={this.toggleGameOver}> GIVE UP </Button>
         <SolutionTable style={{ display: "none" }} />
       </Container>
     );
