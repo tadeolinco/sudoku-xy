@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-// import Board from './containers/Board';
-import SolutionTable from './containers/SolutionTable';
-// import Cell from './components/Cell';
-import { Button, Input, Container, Grid } from 'semantic-ui-react';
+
+import SolutionTable from './components/SolutionTable';
+import LoadGame from './components/LoadGame';
+import Board from './components/Board';
+import { Button, Container, Grid } from 'semantic-ui-react';
 
 class App extends Component {
   constructor(props) {
@@ -11,13 +12,115 @@ class App extends Component {
     this.state = {
       puzzle: null,
       size: 0,
-      gameOver: false
+      displayLoadGame: '',
+      displayShowSolution: 'none',
+      displaySolutionBox: 'none',
+      gameOver: false,
+      gameStarted: false,
+      solutions: null,
+      solutionCount: null,
+      currSolIndex: 0,
     }
   }
 
-  toggleGameOver = () => {
-    const currentState = this.state.gameOver
-    this.setState({ gameOver: !currentState })
+  gameOver = () => {
+    // Solution count object
+    const testSolutionCount = {
+      all: 123,
+      x: 32,
+      y: 11,
+      xy: 21
+    }
+
+    // Solution object format:
+    // { x: true, y: false, puzzle: [] }
+    const testSolution = [
+      { x: true, 
+        y: false,
+        puzzle: [
+          [1,1,1,1,1,1,6,1,7],
+          [1,8,1,7,1,1,1,4,1],
+          [1,3,2,4,1,1,1,1,1],
+          [1,1,1,1,1,9,1,1,1],
+          [3,1,1,1,4,1,1,2,9],
+          [1,1,4,8,1,1,1,1,1],
+          [1,2,1,1,1,3,5,6,1],
+          [1,9,1,2,1,4,1,3,1],
+          [8,1,3,1,1,1,1,1,2]
+        ]
+      },
+      { x: false, 
+        y: true,
+        puzzle: [
+          [2,2,2,2,2,2,6,2,7],
+          [2,8,2,7,2,2,2,4,2],
+          [2,3,2,4,2,2,2,2,2],
+          [2,2,2,2,2,9,2,2,2],
+          [3,2,2,2,4,2,2,2,9],
+          [2,2,4,8,2,2,2,2,2],
+          [2,2,2,2,2,3,5,6,2],
+          [2,9,2,2,2,4,2,3,2],
+          [8,2,3,2,2,2,2,2,2]
+        ]
+      },
+      { x: true, 
+        y: true,
+        puzzle: [
+          [3,3,3,3,3,3,6,3,7],
+          [3,8,3,7,3,3,3,4,3],
+          [3,3,3,4,3,3,3,3,3],
+          [3,3,3,3,3,9,3,3,3],
+          [3,3,3,3,4,3,3,3,9],
+          [3,3,4,8,3,3,3,3,3],
+          [3,3,3,3,3,3,5,6,3],
+          [3,9,3,3,3,4,3,3,3],
+          [8,3,3,3,3,3,3,3,3]
+        ]
+      }
+
+    ]
+
+    this.setState({
+      gameOver: true,
+      displayLoadGame: '',
+      displayShowSolution: 'none',
+      displaySolutionBox: '',
+      solutions: testSolution,
+      solutionCount: testSolutionCount
+    })
+  }
+
+  prevSolution = () => {
+    let curr = this.state.currSolIndex - 1;
+    if(curr < 0) curr = this.state.solutions.length - 1
+    if(curr === this.state.solutions.length) curr = 0 
+    this.setState({
+      currSolIndex: curr
+    });
+  }
+
+  nextSolution = () => {
+    let curr = this.state.currSolIndex + 1;
+    if(curr < 0) curr = this.state.solutions.length - 1
+    if(curr === this.state.solutions.length) curr = 0 
+    this.setState({
+      currSolIndex: curr
+    });
+  }
+
+  newGame = () => {
+    this.setState({
+      puzzle: null,
+      size: 0, 
+      displayLoadGame: 'none', 
+      displayShowSolution: 'none',
+      displaySolutionBox: 'none',
+      gameOver: false,
+      gameStarted: true,
+      solutions: null,
+      solutionCount: null,
+      currSolIndex: 0
+    })
   }
 
   readInputFile = e => {
@@ -26,42 +129,56 @@ class App extends Component {
       const reader = new FileReader();
       reader.onload = () => {
         const { puzzle } = JSON.parse(reader.result);
-        this.setState({ puzzle, size: puzzle[0].length })
+        this.setState({ 
+          puzzle, 
+          size: puzzle[0].length,
+          displayShowSolution: ''
+        })
       };
       reader.readAsText(file);
     }
   }
 
+  checkAnswer = () => {
+    // check input answer here
+    alert('boi u play sudoku!');
+
+    this.newGame();
+    this.setState({ displayLoadGame: '' })
+  }
+
   render() {
     return (
       <Container textAlign="center">
-        <h1>sudoku xy</h1>
-        <Input type="file" onChange={this.readInputFile}></Input>
+        <h1>SUDOKU XY</h1>
+        <LoadGame newGame={this.newGame} readInputFile={this.readInputFile} display={this.state.displayLoadGame} />
+        
+        <div style={{ width: '100%', textAlign: 'center' }}>
+          <Grid id="board" style={{ margin: 0 }}>
+            <Grid.Column width={4} >
+              <Button onClick={this.prevSolution} style={{ display: this.state.displaySolutionBox }}>
+                left
+              </Button>
+            </Grid.Column>
 
-        <div id="board" style={{ width: 50*this.state.size, height: 50*this.state.size, margin: 0 }}>
-          <Grid columns={this.state.size}>
-            { this.state.puzzle && this.state.puzzle.map((row, i) => {
-              return (
-                <Grid.Row key={i} className="row" row_val={row}>
-                  {
-                    row.map((cell, j) => {
-                      const disabled = cell === 0 ? false : true
-                      return(
-                        <Grid.Column key={j} textAlign='center'>
-                           { disabled && <input disabled value={cell} style={{ width: 20 }}/>}
-                           { !disabled && <input style={{ width: 20 }} /> }
-                        </Grid.Column>
-                      )
-                    })
-                  }
-                </Grid.Row>
-              )
-            })}
+            <Grid.Column width={8} textAlign='center'>
+              { !this.state.gameOver && this.state.puzzle && <Board gameOver={false} gameStarted={this.state.gameStarted} size={this.state.size} puzzle={this.state.puzzle} style={{ width: 50*this.state.size, height: 50*this.state.size }} /> }
+              { this.state.gameOver && <Board gameOver ={true} gameStarted={this.state.gameStarted} size={this.state.size} puzzle={this.state.solutions[this.state.currSolIndex].puzzle} style={{ width: 50*this.state.size, height: 50*this.state.size }} /> }
+            </Grid.Column>
+
+            <Grid.Column width={4} >
+              <Button onClick={this.nextSolution} style={{ display: this.state.displaySolutionBox }}>
+                right
+              </Button>
+            </Grid.Column>
           </Grid>
         </div>
 
-        <Button onClick={this.toggleGameOver}> GIVE UP </Button>
-        <SolutionTable style={{ display: "none" }} />
+        <div>
+          <Button onClick={this.checkAnswer} style={{ display: this.state.displayShowSolution}}>Check Answer</Button>
+          <Button onClick={this.gameOver} style={{ display: this.state.displayShowSolution}}>Show Solutions</Button>
+        </div>
+        { this.state.gameOver && <SolutionTable solutionCount={this.state.solutionCount} x={this.state.solutions[this.state.currSolIndex].x} y={this.state.solutions[this.state.currSolIndex].y} display={this.state.displaySolutionBox} /> }
       </Container>
     );
   }
