@@ -17,7 +17,7 @@ class App extends Component {
       displaySolutionBox: 'none',
       gameOver: false,
       gameStarted: false,
-      solutions: null,
+      solutions: [],
       solutionCount: null,
       currSolIndex: 0,
       gettingSolutions: false,
@@ -81,7 +81,7 @@ class App extends Component {
       displaySolutionBox: 'none',
       gameOver: false,
       gameStarted: true,
-      solutions: null,
+      solutions: [],
       solutionCount: null,
       currSolIndex: 0,
       gettingSolutions: false,
@@ -107,11 +107,45 @@ class App extends Component {
   }
 
   checkAnswer = () => {
-    // check input answer here
-    alert('boi u play sudoku!')
+    const { puzzleInput } = this.state
+    const size = puzzleInput.length
+    const subSize = Math.sqrt(size)
+    const rows = []
+    const cols = []
+    const squares = []
 
-    this.newGame()
-    this.setState({ displayLoadGame: '' })
+    for (let i = 0; i < size; ++i) {
+      // set of keys to know which ones were inputted
+      rows.push({})
+      cols.push({})
+      squares.push({})
+    }
+
+    for (let row = 0; row < size; ++row) {
+      for (let col = 0; col < size; ++col) {
+        if (!puzzleInput[row][col]) continue
+        rows[row][puzzleInput[row][col]] = true
+        cols[col][puzzleInput[row][col]] = true
+        squares[
+          subSize * Math.floor(row / subSize) + Math.floor(col / subSize)
+        ][puzzleInput[row][col]] = true
+      }
+    }
+
+    for (let i = 0; i < size; ++i) {
+      // we then check if the the number of keys of each object is equal to the size
+      if (
+        Object.keys(rows[i]).length !== size ||
+        Object.keys(cols[i]).length !== size ||
+        Object.keys(squares[i]).length !== size
+      )
+        return alert('Incorrect solution')
+    }
+
+    if (window.confirm('Correct solution! Would you like to play again?')) {
+      this.newGame()
+      this.setState({ displayLoadGame: '' })
+    }
   }
 
   changePuzzleInput = (x, y, value) => {
@@ -155,6 +189,7 @@ class App extends Component {
                   icon
                   onClick={this.prevSolution}
                   style={{ display: this.state.displaySolutionBox }}
+                  disabled={this.state.currSolIndex === 0}
                 >
                   <Icon name="angle left" />
                 </Button>
@@ -176,25 +211,26 @@ class App extends Component {
                       }}
                     />
                   )}
-                {this.state.gameOver && (
-                  <Fragment>
-                    <h3>Solution #{this.state.currSolIndex + 1}</h3>
-                    <Board
-                      gameOver={true}
-                      gameStarted={this.state.gameStarted}
-                      size={this.state.size}
-                      puzzle={
-                        this.state.solutions[this.state.currSolIndex].puzzle
-                      }
-                      puzzleInput={this.state.puzzleInput}
-                      changePuzzleInput={this.changePuzzleInput}
-                      style={{
-                        width: 50 * this.state.size,
-                        height: 50 * this.state.size,
-                      }}
-                    />
-                  </Fragment>
-                )}
+                {this.state.gameOver &&
+                  !!this.state.solutions.length && (
+                    <Fragment>
+                      <h3>Solution #{this.state.currSolIndex + 1}</h3>
+                      <Board
+                        gameOver={true}
+                        gameStarted={this.state.gameStarted}
+                        size={this.state.size}
+                        puzzle={
+                          this.state.solutions[this.state.currSolIndex].puzzle
+                        }
+                        puzzleInput={this.state.puzzleInput}
+                        changePuzzleInput={this.changePuzzleInput}
+                        style={{
+                          width: 50 * this.state.size,
+                          height: 50 * this.state.size,
+                        }}
+                      />
+                    </Fragment>
+                  )}
               </Grid.Column>
 
               <Grid.Column width={4} verticalAlign="middle">
@@ -202,6 +238,10 @@ class App extends Component {
                   icon
                   onClick={this.nextSolution}
                   style={{ display: this.state.displaySolutionBox }}
+                  disabled={
+                    !this.state.solutions.length ||
+                    this.state.currSolIndex === this.state.solutions.length - 1
+                  }
                 >
                   <Icon name="angle right" />
                 </Button>
@@ -223,14 +263,17 @@ class App extends Component {
               Show Solutions
             </Button>
           </div>
-          {this.state.gameOver && (
-            <SolutionTable
-              solutionCount={this.state.solutionCount}
-              x={this.state.solutions[this.state.currSolIndex].x}
-              y={this.state.solutions[this.state.currSolIndex].y}
-              display={this.state.displaySolutionBox}
-            />
-          )}
+          {this.state.gameOver &&
+            (!!this.state.solutions.length ? (
+              <SolutionTable
+                solutionCount={this.state.solutionCount}
+                x={this.state.solutions[this.state.currSolIndex].x}
+                y={this.state.solutions[this.state.currSolIndex].y}
+                display={this.state.displaySolutionBox}
+              />
+            ) : (
+              <h3>No solutions</h3>
+            ))}
         </Container>
       </Segment>
     )
