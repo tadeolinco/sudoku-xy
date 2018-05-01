@@ -9,7 +9,6 @@ const LoadGame = props => {
         New Game
       </label>
       <Input
-        onClick={props.newGame}
         onChange={props.readInputFile}
         type="file"
         id="file"

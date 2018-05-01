@@ -1,5 +1,5 @@
-import express from 'express'
 import bodyParser from 'body-parser'
+import express from 'express'
 import solve from './solveSudoku'
 
 const app = express()
@@ -8,8 +8,8 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 app.post('/solve', (req, res) => {
-  const solutions = solve(req.body.puzzle)
-  res.status(200).json({ solutions })
+  const response = solve(req.body.puzzle)
+  res.status(200).json(response)
 })
 
 const port = process.env.PORT || 3001

@@ -85,6 +85,9 @@ const solve = puzzle => {
   }
 
   const solutions = []
+  let xs = 0
+  let ys = 0
+  let xys = 0
   let index = 0
   while (index < stackList.length) {
     const impossible = validate(
@@ -114,11 +117,17 @@ const solve = puzzle => {
       stackList[index].stack[stackList[index].stack.length - 1]
 
     if (index === stackList.length - 1) {
-      // TO DO: CHECK X AND Y
+      const x = checkX(puzzle)
+      const y = checkY(puzzle)
+
+      if (x) xs++
+      if (y) ys++
+      if (x && y) xys++
+
       solutions.push({
         puzzle: puzzle.map(row => row.map(col => col)),
-        x: checkX(puzzle),
-        y: checkY(puzzle),
+        x,
+        y,
       })
 
       // Backtrack to next possible solution
@@ -142,7 +151,12 @@ const solve = puzzle => {
     index++
   }
 
-  return solutions
+  return {
+    solutions,
+    xs,
+    ys,
+    xys,
+  }
 }
 
 export default solve

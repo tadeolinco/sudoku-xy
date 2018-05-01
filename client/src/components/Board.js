@@ -23,9 +23,21 @@ const Board = props => {
                     className={classNameString}
                   >
                     {disabled && (
-                      <input disabled value={cell} style={{ width: 20 }} />
+                      <input
+                        disabled
+                        value={cell}
+                        style={{ width: 20, textAlign: 'center' }}
+                      />
                     )}
-                    {!disabled && <input style={{ width: 20 }} />}
+                    {!disabled && (
+                      <input
+                        style={{ width: 20, textAlign: 'center' }}
+                        onChange={e => {
+                          props.changePuzzleInput(i, j, e.target.value)
+                        }}
+                        value={props.puzzleInput[i][j]}
+                      />
+                    )}
                   </Grid.Column>
                 )
               })}
