@@ -6,22 +6,19 @@ import LoadGame from './components/LoadGame'
 import SolutionTable from './components/SolutionTable'
 
 class App extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      puzzle: null,
-      puzzleInput: [],
-      size: 0,
-      displayLoadGame: '',
-      displayShowSolution: 'none',
-      displaySolutionBox: 'none',
-      gameOver: false,
-      gameStarted: false,
-      solutions: [],
-      solutionCount: null,
-      currSolIndex: 0,
-      gettingSolutions: false,
-    }
+  state = {
+    puzzle: null,
+    puzzleInput: [],
+    size: 0,
+    displayLoadGame: '',
+    displayShowSolution: 'none',
+    displaySolutionBox: 'none',
+    gameOver: false,
+    gameStarted: false,
+    solutions: [],
+    solutionCount: null,
+    currSolIndex: 0,
+    gettingSolutions: false,
   }
 
   gameOver = async () => {

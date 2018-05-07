@@ -1,30 +1,44 @@
 import React from 'react'
-import { Grid } from 'semantic-ui-react'
+import { Table } from 'semantic-ui-react'
 
 const SolutionTable = props => {
+  const includesStyle = {
+    backgroundColor: '#21ba45',
+    color: '#fff',
+  }
+
   return (
-    <div style={{ display: props.display }}>
-      <Grid columns={4}>
-        <Grid.Column className="sol">
-          <div className="sol-header">SUDOKU</div>
-          <div className="sol-count">{props.solutionCount.all}</div>
-        </Grid.Column>
-
-        <Grid.Column className="sol">
-          <div className="sol-header">SUDOKU X</div>
-          <div className="sol-count">{props.solutionCount.x}</div>
-        </Grid.Column>
-
-        <Grid.Column className="sol">
-          <div className="sol-header">SUDOKU Y</div>
-          <div className="sol-count">{props.solutionCount.y}</div>
-        </Grid.Column>
-
-        <Grid.Column className="sol">
-          <div className="sol-header">SUDOKU XY</div>
-          <div className="sol-count">{props.solutionCount.xy}</div>
-        </Grid.Column>
-      </Grid>
+    <div style={{ display: props.display, margin: 'auto', width: '50vh' }}>
+      <Table textAlign="center">
+        <Table.Header>
+          <Table.Row textAlign="center">
+            <Table.HeaderCell>TOTAL SOLUTIONS</Table.HeaderCell>
+            <Table.HeaderCell style={props.x ? includesStyle : null}>
+              X
+            </Table.HeaderCell>
+            <Table.HeaderCell style={props.y ? includesStyle : null}>
+              Y
+            </Table.HeaderCell>
+            <Table.HeaderCell style={props.x && props.y ? includesStyle : null}>
+              XY
+            </Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row>
+            <Table.Cell>{props.solutionCount.all}</Table.Cell>
+            <Table.Cell style={props.x ? includesStyle : null}>
+              {props.solutionCount.x}
+            </Table.Cell>
+            <Table.Cell style={props.y ? includesStyle : null}>
+              {props.solutionCount.y}
+            </Table.Cell>
+            <Table.Cell style={props.x && props.y ? includesStyle : null}>
+              {props.solutionCount.xy}
+            </Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
     </div>
   )
 }
