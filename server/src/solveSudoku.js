@@ -70,7 +70,65 @@ const validate = (puzzle, row, col) => {
   return impossible
 }
 
+
+ const checkAnswer = (puzzle) => {
+    const size = puzzle.length
+    const subSize = Math.sqrt(size)
+    const rows = []
+    const cols = []
+    const squares = []
+
+    for (let i = 0; i < size; ++i) {
+      // set of keys to know which ones were inputted
+      rows.push({})
+      cols.push({})
+      squares.push({})
+    }
+
+    for (let row = 0; row < size; ++row) {
+      for (let col = 0; col < size; ++col) {
+
+
+
+        if (!puzzle[row][col]) continue
+        if (typeof rows[row][puzzle[row][col]] === 'undefined') rows[row][puzzle[row][col]] = 0
+        if (typeof cols[col][puzzle[row][col]] === 'undefined') cols[col][puzzle[row][col]] = 0
+        if (typeof squares[
+          subSize * Math.floor(row / subSize) + Math.floor(col / subSize)
+        ][puzzle[row][col]] === 'undefined') squares[
+          subSize * Math.floor(row / subSize) + Math.floor(col / subSize)
+        ][puzzle[row][col]] = 0
+
+
+        rows[row][puzzle[row][col]]++
+        cols[col][puzzle[row][col]]++
+        squares[
+          subSize * Math.floor(row / subSize) + Math.floor(col / subSize)
+        ][puzzle[row][col]]++
+      }
+    }
+
+    for (let i = 0; i < size; ++i) {
+        for (let key in rows[i]) {
+          if (rows[i][key] > 1) return false 
+        }
+
+      for (let key in cols[i]) {
+          if (cols[i][key] > 1) return false 
+        }
+
+      for (let key in squares[i]) {
+          if (squares[i][key] > 1) return false 
+        }
+      
+    }
+
+    return true
+  }
+
 const solve = puzzle => {
+  if (!checkAnswer(puzzle)) return {solutions: [], xs: 0, ys: 0, xys: 0}
+
   const subSize = Math.sqrt(puzzle.length)
   const puzzleSize = puzzle.length
   const stackList = []

@@ -25,9 +25,19 @@ class App extends Component {
     try {
       this.setState({ gettingSolutions: true })
 
+      const puzzle = this.state.puzzle.map((row, i) => {
+        return row.map((cell, j) => {
+          return (
+            cell ||
+            (this.state.puzzleInput[i][j] === ''
+              ? 0
+              : this.state.puzzleInput[i][j])
+          )
+        })
+      })
       const {
         data: { solutions, xs, ys, xys },
-      } = await Axios.post('/solve', { puzzle: this.state.puzzle })
+      } = await Axios.post('/solve', { puzzle })
       // Solution count object
       const solutionCount = {
         all: solutions.length,
