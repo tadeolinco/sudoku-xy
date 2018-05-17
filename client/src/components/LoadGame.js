@@ -5,7 +5,6 @@ const LoadGame = props => {
   return (
     <div style={{ display: props.display }}>
       <label htmlFor="file" className="ui icon button">
-        <i className="file icon" style={{ paddingRight: 20 }} />
         New Game
       </label>
       <Input

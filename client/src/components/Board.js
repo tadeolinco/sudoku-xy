@@ -6,18 +6,28 @@ const Board = props => {
 
   return (
     <Table celled>
-      <Table.Body>
+      <Table.Body id='board-game'>
         {props.puzzle.map((row, i) => (
           <Table.Row key={i}>
             {row.map((cell, j) => {
               const disabled = cell !== 0
+              const borderTop =
+                i !== 0 && i % Math.sqrt(props.size) === 0
+                  ? '2px solid gray'
+                  : ''
+              const borderLeft =
+                j !== 0 && j % Math.sqrt(props.size) === 0
+                  ? '2px solid gray'
+                  : ''
               return (
-                <Table.Cell key={j} style={{ textAlign: 'center' }}>
+                <Table.Cell className='board-cell' key={j} style={{ textAlign: 'center', borderTop, borderLeft  }}>
                   {disabled ? (
                     cell
                   ) : (
                     <input
+                      className="cell"
                       style={{
+                        fontWeight: 'bold',
                         width: 26,
                         textAlign: 'center',
                         border: '1px solid gray',
@@ -26,7 +36,7 @@ const Board = props => {
                       }}
                       type="text"
                       onChange={e => {
-                        props.changePuzzleInput(i, j, e.target.value)
+                        props.changePuzzleInput(i, j, e.target.value, e)
                       }}
                       value={props.puzzleInput[i][j]}
                     />

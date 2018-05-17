@@ -155,7 +155,7 @@ class App extends Component {
     }
   }
 
-  changePuzzleInput = (x, y, value) => {
+  changePuzzleInput = (x, y, value, e) => {
     // last character should be from 1-9, or just blank (catches backspace)
     if (/[1-9]$/.test(value) || value === '') {
       // set value to the last character of the string
@@ -174,20 +174,30 @@ class App extends Component {
         ),
       })
     }
+
+    // Toggle border
+    if (value !== '') {
+      e.target.style.border = 'none'
+    } else {
+      e.target.style.border = '1px solid gray'
+    }
   }
 
   render() {
     return (
       <Segment
+        id='main-segment'
         loading={this.state.gettingSolutions}
         style={{ height: '100vh' }}
       >
-        <Container textAlign="center">
-          <h1>SUDOKU XY</h1>
-          <LoadGame
-            readInputFile={this.readInputFile}
-            display={this.state.displayLoadGame}
-          />
+        <Container id="main-container" textAlign="center">
+          <div>
+            <div id="title">SUDOKU XY</div>
+            <LoadGame
+              readInputFile={this.readInputFile}
+              display={this.state.displayLoadGame}
+            />
+          </div>
 
           <div style={{ width: '100%', textAlign: 'center' }}>
             <Grid id="board" style={{ margin: 0 }}>
@@ -256,7 +266,7 @@ class App extends Component {
             </Grid>
           </div>
 
-          <div>
+          <div id='controls'>
             <Button
               onClick={this.checkAnswer}
               style={{ display: this.state.displayShowSolution }}
@@ -282,6 +292,8 @@ class App extends Component {
               <h3>No solutions</h3>
             ))}
         </Container>
+        <div id="bg-red" />
+        <div id="bg-coffee" />
       </Segment>
     )
   }
